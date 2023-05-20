@@ -1,5 +1,7 @@
 # import tkinter
 from Classes import Reservation_Station, Register_File, twos_complement
+from tkinter import Tk, Button, Entry, filedialog
+import tkinter as tk
 
 
 class Tomasulos_Algorithm:
@@ -12,7 +14,7 @@ class Tomasulos_Algorithm:
             Reservation_Station("Add1", "ADD",2), Reservation_Station("Add2", "ADD", 2),Reservation_Station("Add3", "ADD", 2),
             Reservation_Station("Neg1", "NEG",2),
             Reservation_Station("Nand1", "NAND",1),
-            Reservation_Station("Ssl1", "SSL",8)
+            Reservation_Station("Sll1", "SLL",8)
             ]
         self.registerFile= Register_File()
         self.Clock = 0
@@ -63,44 +65,74 @@ class Tomasulos_Algorithm:
     def setVQ(self,station:Reservation_Station,*args): #we assume the arguments are put in order so j then k
         index = 0
         for argument in args:
-            if self.registerFile.getRegisterQ(argument) != "":
+            if self.registerFile.getRegisterQ(argument) != "" and self.registerFile.getRegisterQ(argument)!=station.Name:
                 if index ==0:
-                    station.setValues(Qj = argument)
+                    station.setValues(Qj = self.registerFile.getRegisterQ(argument))
                 else:
-                    station.setValues(Qk = argument)
+                    station.setValues(Qk = self.registerFile.getRegisterQ(argument))
             else:
                 if index ==0:
-                    station.setValues(Vj = self.registerFile.getRegisterVal(argument))
+                    station.setValues(Vj = int(self.registerFile.getRegisterVal(argument)))
                 else:
-                    station.setValues(Vk = self.registerFile.getRegisterVal(argument))
+                    station.setValues(Vk = int(self.registerFile.getRegisterVal(argument)))
+            index+=1
     def updateRD(self,name,value):
         for register in self.registerFile.Registers:
             if register.Qi == name:
-                register.Qi == ""
+                register.Qi = ""
                 register.Value = value
     def updateMemory(self):
         return #we will update memory here
+    def updateAffected(self,value,finishStation:Reservation_Station):
+        for station in self.Reservation_Stations:
+            if station.Qj == finishStation.Name:
+                station.Qj = ""
+                station.Vj = value
+            elif station.Qk == finishStation.Name:
+                station.Qk = ""
+                station.Vk = value
+            finishStation.Vj = 0
+            finishStation.Vk = 0
+            finishStation.Qj = ""
+            finishStation.Qk = ""
+            finishStation.Busy = 0
+            finishStation.A = 0
+            finishStation.currCycle=0
 
-
+            if finishStation.Op == "ADDI":
+                finishStation.Op = "ADD"
+        
     def handleOp(self,station:Reservation_Station):
         if(station.Op == "LOAD" and station.currCycle == station.maxCycle):
-            self.updateRD(station.Name,self.Memory[station.A])
+            val = self.Memory.get(int(station.A)) or 0
+            self.updateRD(station.Name, val)
+            self.updateAffected(val,station)
         elif(station.Op == "LOAD" and station.currCycle == 1):
-            station.A = station.A + station.Vj
+            station.A = int(station.A) + station.Vj
         elif(station.Op == "STORE" and station.currCycle == station.maxCycle):
             self.updateMemory()
         elif(station.Op == "STORE" and station.currCycle == 1):
-            station.A = station.A + station.Vj
-        elif(station.Op == "ADD"):
-            self.updateRD(station.Name,station.Vj + station.Vk)
+            station.A = int(station.A) + station.Vj
         elif(station.Op == "ADDI"):
-            self.updateRD(station.Name,station.Vj + station.A)
+            val = station.Vj + int(station.A)
+            self.updateRD(station.Name, val)
+            self.updateAffected(val,station)
+        elif(station.Op == "ADD"):
+            val = station.Vj + station.Vk
+            self.updateRD(station.Name,val)
+            self.updateAffected(val,station)
         elif(station.Op == "NEG"):
-            self.updateRD(station.Name,twos_complement(station.Vj,16))
+            val = twos_complement(station.Vj,16)
+            self.updateRD(station.Name,val)
+            self.updateAffected(val,station)
         elif(station.Op == "NAND"):
-            self.updateRD(station.Name,~(station.Vj &station.Vk))
+            val = ~(station.Vj &station.Vk)
+            self.updateRD(station.Name,val)
+            self.updateAffected(val,station)
         elif(station.Op == "SLL"):
-            self.updateRD(station.Name,station.Vj << station.Vk)
+            val = station.Vj << station.Vk
+            self.updateRD(station.Name,val)
+            self.updateAffected(val,station)
         elif(station.Op == "BNE"):
             self.predictions+=1
             if station.Vj!= station.Vk:
@@ -111,22 +143,12 @@ class Tomasulos_Algorithm:
                 #branching logic needed for allowing the excution of the stations that were waiting
                 self.success+=1
         elif(station.Op == "JAL"):
-            self.updateRD(station.Name,self.memory[station.A])
+            self.updateRD(station.Name,self.memory.get(station.A) or 0)
 
     def finishStation(self,finishStation:Reservation_Station):
-        self.handleOp(station)
-        for station in self.Reservation_Stations:
-            if station.Qj == finishStation.Name:
-                station.Qj = ""
-            elif station.Qk == finishStation.Name:
-                station.Qk = ""
-            finishStation.Vj = 0
-            finishStation.Vk = 0
-            finishStation.Qj = ""
-            finishStation.Qk = ""
-            finishStation.Busy = 0
-            finishStation.A = 0
-            finishStation.currCycle=0
+        self.handleOp(finishStation)
+
+
 
     def updateRunning(self):
         for station in self.Reservation_Stations:
@@ -185,7 +207,7 @@ class Tomasulos_Algorithm:
                 imm = parts[3]
                 self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1)
-                currStation.setValues(Busy=1,A=imm)
+                currStation.setValues(Op ="ADDI", Busy=1,A=imm)
 
         elif instruction == "NEG":
             currStation = self.checkStation("NEG")
@@ -209,6 +231,7 @@ class Tomasulos_Algorithm:
         elif instruction == "SLL":
             currStation = self.checkStation("SLL")
             if(currStation!=None):
+                print("I made it mom")
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 rs2 = parts[3]
@@ -222,7 +245,8 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 offset = parts[2].split('(')[0]
                 src = parts[2].split('(')[1].rstrip(')')
-                self.setVQ(currStation,rs1,src)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
+                self.setVQ(currStation,src)
                 currStation.setValues(Busy=1, A=offset)
 
         elif instruction == "BNE":
@@ -246,18 +270,70 @@ class Tomasulos_Algorithm:
 
 def main():
     alg = Tomasulos_Algorithm()
-    alg.registerFile.setRegisterVal("R0",1)
-    alg.registerFile.setRegisterVal("R1",1)
-    alg.registerFile.setRegisterVal("R2",1)
-    alg.registerFile.setRegisterQ("R0", "ADD1")
     alg.readInstructionsFromFile("test.txt")
     alg.startCycle()
     alg.printStation()
     alg.startCycle()
     alg.printStation()
 
-main()
+#main()
 
-# top = tkinter.Tk()
-# # Code to add widgets will go here...
-# top.mainloop()
+class EducationalWindow(tk.Tk):
+    def __init__(self, reservation_stations, register_file, algorithm):
+        super().__init__()
+
+        self.reservation_stations = reservation_stations
+        self.register_file = register_file
+        self.algorithm = algorithm
+
+        self.title("Learn.")
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(9, weight=1)
+
+        self.station_labels = []
+        for i, station in enumerate(self.reservation_stations):
+            label_text = f"{station.Name}: Op={station.Op}, Vj={station.Vj}, Vk={station.Vk}, Qj={station.Qj}, Qk={station.Qk}, Busy={station.Busy}, A={station.A}"
+            label = tk.Label(self, text=label_text)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            self.station_labels.append(label)
+
+        self.register_labels = []
+        for i in range(8):
+            label_text = f"R{i}: Value={self.register_file.getRegisterVal(f'R{i}')}, Qi={self.register_file.getRegisterQ(f'R{i}')}"
+            label = tk.Label(self, text=label_text)
+            label.grid(row=i, column=1, padx=10, pady=5, sticky="w")
+            self.register_labels.append(label)
+
+        solid_line = tk.Frame(self, height=2, bd=1, relief=tk.SOLID)
+        solid_line.grid(row=len(self.reservation_stations), column=0, columnspan=2, padx=10, pady=5, sticky="we")
+
+        clock_label = tk.Label(self, text="Clock Cycle:")
+        clock_label.grid(row=len(self.reservation_stations) + 1, column=0, padx=10, pady=5, sticky="e")
+        self.clock_value_label = tk.Label(self, text="0")
+        self.clock_value_label.grid(row=len(self.reservation_stations) + 1, column=1, padx=10, pady=5, sticky="e")
+
+        start_button = tk.Button(self, text="Start Cycle", command=self.start_cycle)
+        start_button.grid(row=len(self.reservation_stations) + 2, column=0, columnspan=2, padx=10, pady=5)
+
+    def update_labels(self, clock_cycle):
+        for i, station in enumerate(self.reservation_stations):
+            label_text = f"{station.Name}: Op={station.Op}, Vj={station.Vj}, Vk={station.Vk}, Qj={station.Qj}, Qk={station.Qk}, Busy={station.Busy}, A={station.A}"
+            self.station_labels[i].config(text=label_text)
+
+        for i in range(8):
+            label_text = f"R{i}: Value={self.register_file.getRegisterVal(f'R{i}')}, Qi={self.register_file.getRegisterQ(f'R{i}')}"
+            self.register_labels[i].config(text=label_text)
+
+        self.clock_value_label.config(text=clock_cycle)
+
+    def start_cycle(self):
+        self.algorithm.startCycle()
+        self.update_labels(self.algorithm.Clock)
+
+algorithm = Tomasulos_Algorithm()
+algorithm.readInstructionsFromFile("test.txt")
+window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
+window.update_labels(algorithm.Clock)
+window.mainloop()
