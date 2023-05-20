@@ -171,12 +171,71 @@ class Tomasulos_Algorithm:
             currStation = self.checkStation("ADD")
             if(currStation!=None):
                 rd = parts[1].replace(',', '')
-                rs = parts[2].replace(',', '')
-                rt = parts[3].replace(',', '')
+                rs1 = parts[2].replace(',', '')
+                rs2 = parts[3]
                 self.registerFile.setRegisterQ(rd,currStation.Name)
-                self.setVQ(currStation,rs,rt)
+                self.setVQ(currStation,rs1,rs2)
                 currStation.setValues(Busy=1)
 
+        elif instruction == "ADDI":
+            currStation = self.checkStation("ADD")
+            if(currStation!=None):
+                rd = parts[1].replace(',', '')
+                rs1 = parts[2].replace(',', '')
+                imm = parts[3]
+                self.registerFile.setRegisterQ(rd,currStation.Name)
+                self.setVQ(currStation,rs1)
+                currStation.setValues(Busy=1,A=imm)
+
+        elif instruction == "NEG":
+            currStation = self.checkStation("NEG")
+            if(currStation!=None):
+                rd = parts[1].replace(',', '')
+                rs1 = parts[2]
+                self.registerFile.setRegisterQ(rd,currStation.Name)
+                self.setVQ(currStation,rs1)
+                currStation.setValues(Busy=1)
+
+        elif instruction == "NAND":
+            currStation = self.checkStation("NAND")
+            if(currStation!=None):
+                rd = parts[1].replace(',', '')
+                rs1 = parts[2].replace(',', '')
+                rs2 = parts[3]
+                self.registerFile.setRegisterQ(rd,currStation.Name)
+                self.setVQ(currStation,rs1,rs2)
+                currStation.setValues(Busy=1)
+
+        elif instruction == "SLL":
+            currStation = self.checkStation("SLL")
+            if(currStation!=None):
+                rd = parts[1].replace(',', '')
+                rs1 = parts[2].replace(',', '')
+                rs2 = parts[3]
+                self.registerFile.setRegisterQ(rd,currStation.Name)
+                self.setVQ(currStation,rs1,rs2)
+                currStation.setValues(Busy=1)
+
+        elif instruction == "STORE":
+            currStation = self.checkStation("STORE")
+            if(currStation!=None):
+                rd = parts[1].replace(',', '')
+                offset = parts[2].split('(')[0]
+                src = parts[2].split('(')[1].rstrip(')')
+                self.setVQ(currStation,rs1,src)
+                currStation.setValues(Busy=1, A=offset)
+
+        elif instruction == "BNE":
+            currStation = self.checkStation("BNE")
+            if(currStation!=None):
+                rs1 = parts[1].replace(',', '')
+                rs2 = parts[2].replace(',', '')
+                label = parts[3]   #we need to map the label to the index in the file
+                self.setVQ(currStation,rs1,rs2)
+                currStation.setValues(Busy=1, A=label)
+
+        elif instruction == "JAL":
+            #not sure how to handle this
             return #you can continue here
 
     def goState(self,state): #go to a specific state for example if I want to go back to when the instructions were at the 0 state (we keep popping so we need to go back)
