@@ -9,7 +9,7 @@ class Tomasulos_Algorithm:
             Reservation_Station("Store1", "STORE",2),Reservation_Station("Store2", "STORE",2),
             Reservation_Station("Bne1", "BNE",1),
             Reservation_Station("Jal1", "JAL",1),
-            Reservation_Station("Add1", "ADD",2), Reservation_Station("Add2", "ADD"),Reservation_Station("Add3", "ADD"),
+            Reservation_Station("Add1", "ADD",2), Reservation_Station("Add2", "ADD", 2),Reservation_Station("Add3", "ADD", 2),
             Reservation_Station("Neg1", "NEG",2),
             Reservation_Station("Nand1", "NAND",1),
             Reservation_Station("Ssl1", "SSL",8)
@@ -247,6 +247,8 @@ class Tomasulos_Algorithm:
 def main():
     alg = Tomasulos_Algorithm()
     alg.registerFile.setRegisterVal("R0",1)
+    alg.registerFile.setRegisterVal("R1",1)
+    alg.registerFile.setRegisterVal("R2",1)
     alg.registerFile.setRegisterQ("R0", "ADD1")
     alg.readInstructionsFromFile("test.txt")
     alg.startCycle()
