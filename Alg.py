@@ -382,3 +382,58 @@ class EducationalWindow(tk.Tk):
 # window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
 # window.update_labels(algorithm.Clock)
 # window.mainloop()
+main()
+
+class StartWindow:
+    def __init__(self):
+        super().__init__()
+        self.root = Tk()
+        self.root.title("Tomasulos Algorithm")
+        self.root.geometry("400x400")
+        self.inputfile = ""
+    def selectFile(self):
+        self.root = Tk()
+        self.root.withdraw()
+        self.inputfile = filedialog.askopenfilename()
+        if self.inputfile:
+            print("The selected file", self.inputfile)
+        else:
+            self.inputfile = ""
+            print("No file selected")
+        self.root.destroy()
+
+
+    def executeFile(self):
+        print(self.inputfile)
+        if self.inputfile:
+            algorithm = Tomasulos_Algorithm()
+            algorithm.readInstructionsFromFile(self.inputfile)
+            self.root = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
+            self.root.update_labels(algorithm.Clock)
+            self.root.mainloop()
+        else:
+            print("No file executing")
+
+
+    def executeWritten(self):
+        code_entry = Entry(self.root)
+        code_entry.pack()
+
+        code  = code_entry.get()
+        print("Executing written code:")
+        print(code)
+
+        self.root.destroy()
+    def test(self):
+        fileSelectButton = Button(text = "Select the file", command =self.selectFile)
+        fileSelectButton.pack()
+
+        codeButton = Button(self.root, text = "Execute Written Code", command = self.executeWritten)
+        codeButton.pack()
+
+        fileButton = Button(self.root, text = "Execute File Code:", command =self.executeFile)
+        fileButton.pack()
+        self.root.mainloop()
+
+start = StartWindow()
+start.test()
