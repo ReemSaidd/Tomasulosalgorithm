@@ -16,11 +16,17 @@ class Tomasulos_Algorithm:
             Reservation_Station("Nand1", "NAND",1),
             Reservation_Station("Sll1", "SLL",8)
             ]
+
+        ## branch logic
+        self.branchDirty =0
+        self.success = 0
+        self.fail = 0
+
         self.registerFile= Register_File()
         self.Clock = 0
         self.instructions = []
         self.Memory = {}
-        self.instructionsOrg = self.instructions #used to store the instructions since we will be popping and we need the original incase of branching and jumping
+        self.instructionsOrg = [] #used to store the instructions since we will be popping and we need the original incase of branching and jumping
         self.labelMap = {} #used to map labels to index in file
     def readInstructionsFromFile(self, instfile):
         """
@@ -43,9 +49,12 @@ class Tomasulos_Algorithm:
                         instruction = parts[1].strip() #right side is 1
                         self.labelMap[label] = index #store labels into map so that I can simply do map[labelname] and that will get me the place it is in the inst memory
                         self.instructions.append(instruction) #put the instruction without the lavel in the inst memory no need to keep track of label anymore since we have the place it is  in
+
                     else:
                         self.instructions.append(line) #no : no label put it normally
                     index += 1 #index is where i keep track of the place i am in the inst memory
+        self.instructionsOrg = self.instructions.copy()
+
 
 
     def readNext(self):
@@ -56,6 +65,8 @@ class Tomasulos_Algorithm:
     def checkStation(self,op):
         for station in self.Reservation_Stations:
             if op == station.Op and station.Busy ==0:
+                if self.branchDirty:
+                    station.waitBranch =1
                 return station
         return None
     def printStation(self):
@@ -66,6 +77,8 @@ class Tomasulos_Algorithm:
         index = 0
         for argument in args:
             if self.registerFile.getRegisterQ(argument) != "" and self.registerFile.getRegisterQ(argument)!=station.Name:
+                # if(argument == "R2"):
+                #     print(self.registerFile.getRegisterQ(argument))
                 if index ==0:
                     station.setValues(Qj = self.registerFile.getRegisterQ(argument))
                 else:
@@ -91,17 +104,47 @@ class Tomasulos_Algorithm:
             elif station.Qk == finishStation.Name:
                 station.Qk = ""
                 station.Vk = value
-            finishStation.Vj = 0
-            finishStation.Vk = 0
-            finishStation.Qj = ""
-            finishStation.Qk = ""
-            finishStation.Busy = 0
-            finishStation.A = 0
-            finishStation.currCycle=0
-
             if finishStation.Op == "ADDI":
                 finishStation.Op = "ADD"
-
+        finishStation.Vj = 0
+        finishStation.Vk = 0
+        finishStation.Qj = ""
+        finishStation.Qk = ""
+        finishStation.Busy = 0
+        finishStation.A = 0
+        finishStation.currCycle=0
+    def resetStation(self, finishStation:Reservation_Station):
+        finishStation.Vj = 0
+        finishStation.Vk = 0
+        finishStation.Qj = ""
+        finishStation.Qk = ""
+        finishStation.Busy = 0
+        finishStation.A = 0
+        finishStation.currCycle=0
+    def updateBranchSuccess(self):
+        self.fail+=1 #our branch predictor is not taken so a branch success is a predictor fail
+        for station in self.Reservation_Stations:
+            if station.waitBranch == 1:
+                for reg in self.registerFile.Registers:
+                    if(reg.Qi == station.Name):
+                        reg.Qi = ""
+                station.Vj = 0
+                station.Vk = 0
+                station.Qj = ""
+                station.Qk = ""
+                station.Busy = 0
+                station.A = 0
+                station.currCycle=0
+                if station.Op == "ADDI":
+                    station.Op = "ADD"
+                station.waitBranch =0
+        self.branchDirty = 0
+    def updateBranchFail(self):
+        self.success+=1 #our branch predictor is not taken so a branch success is a predictor fail
+        self.branchDirty = 0
+        for station in self.Reservation_Stations:
+            if station.waitBranch == 1:
+                station.waitBranch =0
     def handleOp(self,station:Reservation_Station):
         if(station.Op == "LOAD" and station.currCycle == station.maxCycle):
             val = self.Memory.get(int(station.A)) or 0
@@ -134,13 +177,13 @@ class Tomasulos_Algorithm:
             self.updateRD(station.Name,val)
             self.updateAffected(val,station)
         elif(station.Op == "BNE"):
-            self.predictions+=1
             if station.Vj!= station.Vk:
-                #branching logic needed for resetting affected registers
-                self.goState(station.A)
-                self.fail+=1
+                self.updateBranchSuccess()
+                self.goState(int(station.A))
+                self.resetStation(station)
             else:
-                #branching logic needed for allowing the excution of the stations that were waiting
+                self.updateBranchFail()
+                self.resetStation(station)
                 self.success+=1
         elif(station.Op == "JAL"):
             self.updateRD(station.Name,self.memory.get(station.A) or 0)
@@ -157,7 +200,7 @@ class Tomasulos_Algorithm:
             elif station.currCycle ==1 and station.Op == "STORE" or station.Op == "LOAD":
                 self.handleOp(station)
         for station in self.Reservation_Stations:
-            if station.Qj == "" and station.Qk == "" and station.Busy ==1:
+            if station.Qj == "" and station.Qk == "" and station.Busy ==1 and station.waitBranch == 0:
                 station.currCycle+=1
 
 
@@ -186,8 +229,8 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 offset = parts[2].split('(')[0]
                 src = parts[2].split('(')[1].rstrip(')')
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,src)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1, A=offset)
         elif instruction == "ADD":
             currStation = self.checkStation("ADD")
@@ -195,8 +238,8 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 rs2 = parts[3]
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1,rs2)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1)
 
         elif instruction == "ADDI":
@@ -205,8 +248,8 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 imm = parts[3]
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Op ="ADDI", Busy=1,A=imm)
 
         elif instruction == "NEG":
@@ -214,8 +257,8 @@ class Tomasulos_Algorithm:
             if(currStation!=None):
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2]
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1)
 
         elif instruction == "NAND":
@@ -224,19 +267,18 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 rs2 = parts[3]
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1,rs2)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1)
 
         elif instruction == "SLL":
             currStation = self.checkStation("SLL")
             if(currStation!=None):
-                #print("I made it mom")
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 rs2 = parts[3]
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,rs1,rs2)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1)
 
         elif instruction == "STORE":
@@ -245,8 +287,8 @@ class Tomasulos_Algorithm:
                 rd = parts[1].replace(',', '')
                 offset = parts[2].split('(')[0]
                 src = parts[2].split('(')[1].rstrip(')')
-                self.registerFile.setRegisterQ(rd,currStation.Name)
                 self.setVQ(currStation,src)
+                self.registerFile.setRegisterQ(rd,currStation.Name)
                 currStation.setValues(Busy=1, A=offset)
 
         elif instruction == "BNE":
@@ -254,17 +296,21 @@ class Tomasulos_Algorithm:
             if(currStation!=None):
                 rs1 = parts[1].replace(',', '')
                 rs2 = parts[2].replace(',', '')
-                label = parts[3]   #we need to map the label to the index in the file
+                label = self.labelMap.get(parts[3])   #we need to map the label to the index in the file
                 self.setVQ(currStation,rs1,rs2)
-                currStation.setValues(Busy=1, A=label)
+                self.branchDirty =1
+                currStation.setValues(Busy=1, A=int(label))
 
         elif instruction == "JAL":
-            #not sure how to handle this
-            return #you can continue here
+            currStation = self.checkStation("BNE")
+            if(currStation!=None):
+                label = self.labelMap.get(parts[1])or 0
+                self.setVQ(currStation,"R1")
+                currStation.setValues(Busy=1, A=label)
 
     def goState(self,state): #go to a specific state for example if I want to go back to when the instructions were at the 0 state (we keep popping so we need to go back)
-        self.instructions = self.instructionsOrg
-        for _ in range(0,state):
+        self.instructions = self.instructionsOrg.copy()
+        for _ in range(state):
             self.readNext()
 
 
@@ -285,7 +331,6 @@ class EducationalWindow(tk.Tk):
         self.reservation_stations = reservation_stations
         self.register_file = register_file
         self.algorithm = algorithm
-
         self.title("Learn.")
 
         self.grid_columnconfigure(0, weight=1)
