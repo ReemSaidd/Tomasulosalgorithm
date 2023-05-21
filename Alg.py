@@ -101,7 +101,7 @@ class Tomasulos_Algorithm:
 
             if finishStation.Op == "ADDI":
                 finishStation.Op = "ADD"
-        
+
     def handleOp(self,station:Reservation_Station):
         if(station.Op == "LOAD" and station.currCycle == station.maxCycle):
             val = self.Memory.get(int(station.A)) or 0
@@ -231,7 +231,7 @@ class Tomasulos_Algorithm:
         elif instruction == "SLL":
             currStation = self.checkStation("SLL")
             if(currStation!=None):
-                print("I made it mom")
+                #print("I made it mom")
                 rd = parts[1].replace(',', '')
                 rs1 = parts[2].replace(',', '')
                 rs2 = parts[3]
@@ -332,8 +332,8 @@ class EducationalWindow(tk.Tk):
         self.algorithm.startCycle()
         self.update_labels(self.algorithm.Clock)
 
-algorithm = Tomasulos_Algorithm()
-algorithm.readInstructionsFromFile("test.txt")
-window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
-window.update_labels(algorithm.Clock)
-window.mainloop()
+# algorithm = Tomasulos_Algorithm()
+# algorithm.readInstructionsFromFile("test.txt")
+# window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
+# window.update_labels(algorithm.Clock)
+# window.mainloop()
