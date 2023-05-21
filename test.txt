@@ -1,5 +1,6 @@
-LOAD R2, 6(R3)
-ADDI R2, R2, 3
-ADDI R3, R0, 4
-ADD R5, R1, R2
-SLL R4, R2, R3
+ADDI R2, R0, 5
+branch: ADDI R2, R2, -1
+BNE R0, R2, branch
+ADDI R4, R0, 1
+ADDI R6, R0, 1
+ADDI R1, R0, 1

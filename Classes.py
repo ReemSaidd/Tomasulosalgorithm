@@ -17,6 +17,8 @@ class Reservation_Station:
         self.A = 0
         self.maxCycle =Cycles
         self.currCycle=0
+        self.waitBranch = 0
+
     def setValues(self, **kwargs): #easy way of setting values without making a bunch of setters
         for key, value in kwargs.items():
             setattr(self, key, value)
