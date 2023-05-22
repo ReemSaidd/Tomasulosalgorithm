@@ -1,5 +1,5 @@
 from Classes import Reservation_Station, Register_File
-from tkinter import Tk, Button, Entry, filedialog
+from tkinter import Tk, Button, Entry, filedialog, Label
 import tkinter as tk
 
 class Tomasulos_Algorithm:

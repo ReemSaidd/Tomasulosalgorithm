@@ -39,14 +39,15 @@ class Initial_Screen(tk.Tk):
     def __init__(self):
         self.title = "Tomasulo's Algorithm"
         self.geometry = "500x500"
+        self.root = Tk()
 
         self.title_label = tk.Label(self, text="Enter instructions below")
         self.title_label.pack()
 
-        self.instruction_entry = tk.Entry(root)
+        self.instruction_entry = tk.Entry(self.root)
         self.instruction_entry.pack()
 
-        self.instruction_button = tk.Button(root, text="Add Instruction", command=self.add_instruction)
+        self.instruction_button = tk.Button(self.root, text="Add Instruction", command=self.add_instruction)
         self.instruction_button.pack()
 
 
