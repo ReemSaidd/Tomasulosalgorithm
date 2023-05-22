@@ -88,6 +88,8 @@ class EducationalWindow(tk.Tk):
         self.title("Learn.")
         self.memory_label = tk.Label(self, text="Memory Content:\n")
         self.memory_label.grid(row=len(self.reservation_stations) + 5, column=0, columnspan=2, padx=10, pady=5, sticky="w")
+        self.status_label = tk.Label(self, text="Status:\n")
+        self.status_label.grid(row=len(self.reservation_stations) + 5, column=0, padx=10, pady=5, sticky="w")
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -133,6 +135,11 @@ class EducationalWindow(tk.Tk):
             self.register_labels[i].config(text=label_text)
 
         self.clock_value_label.config(text=clock_cycle)
+        status_content = ""
+        status = self.algorithm.showStatus()
+        for entry in status:
+            status_content += f"{entry}\n"
+        self.status_label.config(text="Status:\n" + status_content)
 
     def start_cycle(self):
         self.algorithm.startCycle()
@@ -140,6 +147,7 @@ class EducationalWindow(tk.Tk):
         self.update_ipc_label()
         self.update_prediction_label()
         self.update_memory_label()  # Update the memory label
+        
 
     def update_ipc_label(self):
         ipc = self.algorithm.getIPC()  # Replace this with the actual method to get IPC from your algorithm
