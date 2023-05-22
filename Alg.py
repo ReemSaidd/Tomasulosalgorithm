@@ -471,33 +471,3 @@ class Tomasulos_Algorithm:
         if self.Clock == 0:  #cant divide by 0
             return 0
         return self.finished/self.Clock
-
-#main()
-def main():
-    algorithm = Tomasulos_Algorithm()
-    algorithm.readInstructionsFromFile("test3.txt")
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-    algorithm.startCycle()
-
-main()
-# algorithm = Tomasulos_Algorithm()
-# algorithm.readInstructionsFromFile("test.txt")
-# window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
-# window.update_labels(algorithm.Clock)
-# window.mainloop()
-
-
-# algorithm = Tomasulos_Algorithm()
-# algorithm.readInstructionsFromFile("test.txt")
-# window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
-# window.update_labels(algorithm.Clock)
-# window.mainloop()
