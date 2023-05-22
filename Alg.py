@@ -14,7 +14,7 @@ class Tomasulos_Algorithm:
             Reservation_Station("Nand1", "NAND",1),
             Reservation_Station("Sll1", "SLL",8)
             ]
-        self.pc = -1 #before we do anything pc is not even 0 yet
+        self.pc = -1
         self.finished = 0 #variable to aid ipc calculation, now ipc is simply finished / cycles
 
         ## branch logic
@@ -110,6 +110,10 @@ class Tomasulos_Algorithm:
         for register in self.registerFile.Registers:
             if register.Qi == name:
                 register.Qi = ""
+                if value > 32767: #defaulting to setting max 16 bit number if its larger than the size specified
+                     value = 32767
+                elif value < -32768:  #defaulting to setting max 16 bit number if its smaller than the size specified
+                    value = -32768
                 register.Value = value
 
     def showMemory(self):
@@ -162,6 +166,8 @@ class Tomasulos_Algorithm:
                 if station.Op == "RET":
                     station.Op = "JAL"
                 station.waitBranch =0
+                if self.takeIn == False:
+                    self.takeIn = True
         self.branchDirty = 0
     def updateBranchFail(self):
         self.success+=1 #our branch predictor is not taken so a branch success is a predictor fail
@@ -217,7 +223,6 @@ class Tomasulos_Algorithm:
             else:
                 self.updateBranchFail()
                 self.resetStation(station)
-                self.success+=1
         elif(station.Op == "JAL"):
             self.goState(station.A)
             self.updateRD(station.Name,station.Vk)
@@ -232,9 +237,9 @@ class Tomasulos_Algorithm:
     def finishStation(self,finishStation:Reservation_Station):
         self.finished+=1
         for x in self.status:
-            if x[1] == finishStation.Name and x[6] == "":
-                x[6] = self.Clock - 1
-                x[5] = self.Clock - 2
+            if x[1] == finishStation.Name and x[5] == "?":
+                x[5] = self.Clock
+                x[4] = self.Clock - 1
 
             
         self.handleOp(finishStation)
@@ -280,6 +285,10 @@ class Tomasulos_Algorithm:
 
     def updateRunning(self):
         for station in self.Reservation_Stations:
+            if station.currCycle ==1:
+                for x in self.status:
+                    if x[1] == station.Name and x[3]== "?":
+                        x[3] = self.Clock - 1 #it started execution last cycle
             if station.currCycle >= station.maxCycle: #we do greater than because the cycles of the station keeps increasing when its waiting on dependencies in load / store
                 if(station.Op != "LOAD"  and station.Op != "STORE"):
                     self.finishStation(station)
@@ -289,10 +298,6 @@ class Tomasulos_Algorithm:
                     self.checkStoreDep(station)
             elif station.currCycle ==1 and station.Op == "STORE" or station.Op == "LOAD": #calculate address
                 self.handleOp(station)
-            if station.currCycle ==1:
-                for x in self.status:
-                    if x[1] == station.Name and x[3]== "":
-                        x[3] = self.Clock-1
         for station in self.Reservation_Stations:
             if station.Qj == "" and station.Qk == "" and station.Busy ==1 and station.waitBranch == 0:
                 station.currCycle+=1
@@ -317,7 +322,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,"R1")
                     currStation.setValues(Busy=1,Op="RET")
                     self.takeIn = False
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -336,7 +341,7 @@ class Tomasulos_Algorithm:
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Busy=1, A=offset)
                     self.StoreLoadPriority.append((currStation.Name, 0, 0))
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -349,7 +354,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1,rs2)
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Busy=1)
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -363,7 +368,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1)
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Op ="ADDI", Busy=1,A=imm)
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -376,7 +381,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1)
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Busy=1)
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -390,7 +395,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1,rs2)
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Busy=1)
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -404,7 +409,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1,rs2)
                     self.registerFile.setRegisterQ(rd,currStation.Name)
                     currStation.setValues(Busy=1)
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -422,7 +427,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,src,rs2)
                     currStation.setValues(Busy=1, A=offset)
                     self.StoreLoadPriority.append((currStation.Name, 0, 0))
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -436,7 +441,7 @@ class Tomasulos_Algorithm:
                     self.setVQ(currStation,rs1,rs2)
                     self.branchDirty =1
                     currStation.setValues(Busy=1, A=int(label))
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -448,7 +453,7 @@ class Tomasulos_Algorithm:
                     self.registerFile.setRegisterQ("R1",currStation.Name)
                     currStation.setValues(Busy=1, A = int(label),Vk = self.pc +1)
                     self.takeIn = False
-                    self.status.append(currInst,currStation.Name, self.Clock, "" ,"", "", "")
+                    self.status.append([currInst,currStation.Name, self.Clock, "?" ,"?", "?", "?"])
                 else:
                     self.instructions.append(currInst)
                     self.pc-=1
@@ -468,7 +473,22 @@ class Tomasulos_Algorithm:
         return self.finished/self.Clock
 
 #main()
+def main():
+    algorithm = Tomasulos_Algorithm()
+    algorithm.readInstructionsFromFile("test3.txt")
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
+    algorithm.startCycle()
 
+main()
 # algorithm = Tomasulos_Algorithm()
 # algorithm.readInstructionsFromFile("test.txt")
 # window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)

@@ -1,8 +1,8 @@
-ADDI R2, R2, 3
-loop: ADDI R1, R1, 1      # Increment a counter (x1) by 1
-BNE R1, R2, loop    # Branch back to 'loop' if x1 is not equal to x2
-JAL test    # Jump to 'end_loop' using the jal instruction
-JAL exit                 # Return from the subroutine
+ADDI R2, R0, 3
+loop: ADDI R3, R3, 1
+BNE R3, R2, loop
+JAL test
+JAL exit
 test: STORE R4, 5(R2)
 LOAD R5, 5(R2)
 RET
