@@ -105,6 +105,10 @@ class Tomasulos_Algorithm:
             if register.Qi == name:
                 register.Qi = ""
                 register.Value = value
+
+    def showMemory(self):
+        return self.Memory
+    
     def updateAffected(self,value,finishStation:Reservation_Station):
         for station in self.Reservation_Stations:
             if station.Qj == finishStation.Name:

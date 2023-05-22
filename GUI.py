@@ -12,9 +12,6 @@ class StartWindow:
         self.instructionLabel = ""
         self.instructionEntry = Label(self.root)
         self.instructionEntry.pack()
-        # self.memoryLabel = Label(self.root, text="Memory: ")
-        # self.memoryLabel.pack()
-
 
     def selectFile(self):
         self.root = Tk()
@@ -60,12 +57,7 @@ class StartWindow:
         algorithm.readInstructionsFromFile(file_name)
         EW = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
     
-    # def update_memory_label(self, memory):
-    #     memory_content = ""
-    #     for address, value in memory.items():
-    #         memory_content += f"{address}: {value}\n"
-    #     self.memoryLabel.config(text="Memory:\n" + memory_content)
-
+    
     def test(self):
         fileSelectButton = Button(text = "Select the file", command =self.selectFile)
         fileSelectButton.pack()
@@ -94,6 +86,8 @@ class EducationalWindow(tk.Tk):
         self.register_file = register_file
         self.algorithm = algorithm
         self.title("Learn.")
+        self.memory_label = tk.Label(self, text="Memory Content:\n")
+        self.memory_label.grid(row=len(self.reservation_stations) + 5, column=0, columnspan=2, padx=10, pady=5, sticky="w")
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -145,10 +139,17 @@ class EducationalWindow(tk.Tk):
         self.update_labels(self.algorithm.Clock)
         self.update_ipc_label()
         self.update_prediction_label()
+        self.update_memory_label()  # Update the memory label
 
     def update_ipc_label(self):
         ipc = self.algorithm.getIPC()  # Replace this with the actual method to get IPC from your algorithm
         self.ipc_label.config(text=f"IPC: {ipc}")
+
+    def update_memory_label(self):
+        memory_content = ""
+        for address, value in self.algorithm.showMemory().items():
+            memory_content += f"address: {address}, value: {value}\n"
+        self.memory_label.config(text="Memory Content:\n" + memory_content)
 
     def update_prediction_label(self):
         prediction = self.algorithm.getPrediction()  # Replace this with the actual method to get the prediction from your algorithm
@@ -156,6 +157,3 @@ class EducationalWindow(tk.Tk):
 
 start = StartWindow()
 start.test()
-
-#take memory file
-#output memory in GUI
