@@ -81,11 +81,11 @@ class StartWindow:
 class EducationalWindow(tk.Tk):
     def __init__(self, reservation_stations, register_file, algorithm):
         super().__init__()
-
         self.reservation_stations = reservation_stations
         self.register_file = register_file
         self.algorithm = algorithm
         self.title("Learn.")
+        self.geometry("1920x1080")
         self.memory_label = tk.Label(self, text="Memory Content:\n")
         self.memory_label.grid(row=0, column=3, columnspan=2, padx=10, pady=5, sticky="w")
         self.status_label = tk.Label(self, text="Status:\n")
