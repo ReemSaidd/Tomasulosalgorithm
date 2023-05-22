@@ -1,6 +1,6 @@
 # import tkinter
 from Classes import Reservation_Station, Register_File, twos_complement
-from tkinter import Tk, Button, Entry, filedialog
+from tkinter import Tk, Button, Entry, Label, filedialog
 import tkinter as tk
 
 
@@ -382,3 +382,91 @@ class EducationalWindow(tk.Tk):
 # window = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
 # window.update_labels(algorithm.Clock)
 # window.mainloop()
+main()
+
+class StartWindow:
+    def __init__(self):
+        super().__init__()
+        self.root = Tk()
+        self.root.title("Tomasulos Algorithm")
+        self.root.geometry("400x400")
+        self.inputfile = ""
+        self.instructionLabel = ""
+        
+    def selectFile(self):
+        self.root = Tk()
+        self.root.withdraw()
+        self.inputfile = filedialog.askopenfilename()
+        if self.inputfile:
+            print("The selected file", self.inputfile)
+        else:
+            self.inputfile = ""
+            print("No file selected")
+        self.root.destroy()
+
+
+    def executeFile(self):
+        print(self.inputfile)
+        if self.inputfile:
+            algorithm = Tomasulos_Algorithm()
+            algorithm.readInstructionsFromFile(self.inputfile)
+            self.root = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
+            self.root.update_labels(algorithm.Clock)
+            self.root.mainloop()
+        else:
+            print("No file executing")
+
+    def submitInstructions(self):
+        SW = StartWindow() ##?
+        instructions = SW.instructionEntry.get() ##The problem is instructionEntry is not defined
+        # instruction_lines = instructions.split('\n')
+        # for line in instruction_lines:
+        #     process_instruction(line)
+        self.saveInstructions(self, instructions)
+
+        print("Entered instructions: ", instructions)
+        
+
+    def saveInstructions(self, instructions):
+        file_name = "instructions.txt"
+        with open(file_name, 'w') as file:
+            file.write(instructions)
+        print("Instructions saved to", file_name)
+
+        algorithm = Tomasulos_Algorithm()   ##
+        algorithm.readInstructionsFromFile(file_name)
+
+    def executeWritten(self):
+        code_entry = Entry(self.submitInstructions)
+        code_entry.pack()
+
+        code  = code_entry.get()
+        print("Executing written code:")
+        print(code)
+
+        self.root.destroy()
+
+    def test(self):
+        fileSelectButton = Button(text = "Select the file", command =self.selectFile)
+        fileSelectButton.pack()
+
+        codeButton = Button(self.root, text = "Execute Written Code", command = self.executeWritten)
+        codeButton.pack()
+
+        fileButton = Button(self.root, text = "Execute File Code:", command =self.executeFile)
+        fileButton.pack()
+
+        submitButton = Button(self.root, text = "Submit", command = self.submitInstructions)
+        submitButton.pack()
+
+        #root = Tk()
+        instructionLabel = Label(self.root, text = "Enter Instructions: ")      #
+        instructionLabel.pack()     #
+        
+        instructionEntry = Entry(self.root)     #
+        instructionEntry.pack()     #
+
+        self.root.mainloop()
+
+start = StartWindow()
+start.test()
