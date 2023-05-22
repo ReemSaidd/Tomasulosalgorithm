@@ -38,22 +38,22 @@ class Register_File:
         if index is not None:
             return self.Registers[index].Value
         else:
-            raise ValueError(f"Invalid register name: {alias}")
+            return self.Registers[0].Value #forcing it to return 0
     def setRegisterVal(self, alias, value):
         index = self.registerMap.get(alias)
         if index is not None:
+            if value > 32767: #defaulting to setting max 16 bit number if its larger than the size specified
+                value = 32767
+            elif value < -32768:  #defaulting to setting max 16 bit number if its smaller than the size specified
+                value = -32768
             self.Registers[index].Value = value
-        else:
-            raise ValueError(f"Invalid register name: {alias}")
     def getRegisterQ(self, alias):
         index = self.registerMap.get(alias)
         if index is not None:
             return self.Registers[index].Qi
         else:
-            raise ValueError(f"Invalid register name: {alias}")
+            return self.Registers[0].Qi
     def setRegisterQ(self, alias, Q):
         index = self.registerMap.get(alias)
         if index is not None:
             self.Registers[index].Qi = Q
-        else:
-            raise ValueError(f"Invalid register name: {alias}")
