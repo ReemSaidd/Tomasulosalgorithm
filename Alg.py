@@ -567,6 +567,7 @@ class StartWindow:
 
         algorithm = Tomasulos_Algorithm()   ##
         algorithm.readInstructionsFromFile(file_name)
+        EW = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
 
     def executeWritten(self):
         code_entry = Entry(self.submitInstructions())
