@@ -3,8 +3,9 @@ from tkinter import Tk, Button, Entry, filedialog,ttk
 import tkinter as tk
 
 class EducationalWindow(tk.Tk):
-    def __init__(self, root):
+    def __init__(self, root, TA):
         table = ttk.Treeview(root)
+
 
         # Define columns
         table["columns"] = ("Name", "Busy", "Op", "Vj", "Vk", "Qj", "Qk", "A")  #add status later
@@ -20,14 +21,12 @@ class EducationalWindow(tk.Tk):
         table.heading("A", text="A")
 
         # Add data rows
-
-        table.insert("", "end", values=("John Doe", 25, "New York"))
-        table.insert("", "end", values=("Jane Smith", 30, "London"))
-        table.insert("", "end", values=("Bob Johnson", 40, "Paris"))
+        for i, station in enumerate(TA.Reservation_Stations):
+            table.insert("", "end", values=(station[i].Name, station.Busy, station.Op, station.Vj, station.Vk, station.Qj, station.Qk, station.A))
 
         # Display table
         table.pack()
-def create_table(root):
+def create_table(root, TA):
     table = ttk.Treeview(root)
 
     # Define columns
@@ -44,10 +43,9 @@ def create_table(root):
     table.heading("A", text="A")
 
     # Add data rows
+    for station in enumerate(TA.Reservation_Stations):
+        table.insert("", "end", values=(station.Name, station.Busy, station.Op, station.Vj, station.Vk, station.Qj, station.Qk, station.A))
 
-    table.insert("", "end", values=("John Doe", 25, "New York"))
-    table.insert("", "end", values=("Jane Smith", 30, "London"))
-    table.insert("", "end", values=("Bob Johnson", 40, "Paris"))
 
     # Display table
     table.pack()
@@ -55,8 +53,9 @@ def create_table(root):
 # Create root window
 root = tk.Tk()
 
+alg = TA()
 # Call the function to create the table
-create_table(root)
+create_table(root, alg)
 
 # Start the Tkinter event loop
 root.mainloop()
