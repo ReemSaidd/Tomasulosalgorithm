@@ -1,7 +1,6 @@
-from Classes import Reservation_Station, Register_File, twos_complement
+from Classes import Reservation_Station, Register_File
 from tkinter import Tk, Button, Entry, filedialog
 import tkinter as tk
-
 
 class Tomasulos_Algorithm:
     def __init__(self):

@@ -1,10 +1,3 @@
-
-def twos_complement(num, num_bits):
-    mask = (1 << num_bits) - 1
-    if num < 0:
-        num = num & mask
-    return num ^ mask
-
 class Reservation_Station:
     def __init__(self, Name, Op,Cycles):
         self.Name = Name
