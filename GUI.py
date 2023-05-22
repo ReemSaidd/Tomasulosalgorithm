@@ -12,6 +12,8 @@ class StartWindow:
         self.instructionLabel = ""
         self.instructionEntry = Label(self.root)
         self.instructionEntry.pack()
+        # self.memoryLabel = Label(self.root, text="Memory: ")
+        # self.memoryLabel.pack()
 
 
     def selectFile(self):
@@ -38,7 +40,7 @@ class StartWindow:
             print("No file executing")
 
     def submitInstructions(self):
-        SW = StartWindow() ##?
+        #SW = StartWindow() ##?
         instructions = self.instructionEntry.get()
         instructionsList = instructions.split(';')
         self.saveInstructions(instructionsList)
@@ -57,6 +59,12 @@ class StartWindow:
         algorithm = Tomasulos_Algorithm()
         algorithm.readInstructionsFromFile(file_name)
         EW = EducationalWindow(algorithm.Reservation_Stations, algorithm.registerFile, algorithm)
+    
+    # def update_memory_label(self, memory):
+    #     memory_content = ""
+    #     for address, value in memory.items():
+    #         memory_content += f"{address}: {value}\n"
+    #     self.memoryLabel.config(text="Memory:\n" + memory_content)
 
     def test(self):
         fileSelectButton = Button(text = "Select the file", command =self.selectFile)
