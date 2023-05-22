@@ -392,7 +392,9 @@ class StartWindow:
         self.root.geometry("400x400")
         self.inputfile = ""
         self.instructionLabel = ""
-        
+        self.instructionEntry = Entry(self.root)
+        self.instructionEntry.pack()
+
     def selectFile(self):
         self.root = Tk()
         self.root.withdraw()
@@ -418,14 +420,15 @@ class StartWindow:
 
     def submitInstructions(self):
         SW = StartWindow() ##?
-        instructions = SW.instructionEntry.get() ##The problem is instructionEntry is not defined
+        instructions = self.instructionEntry.get() ##The problem is instructionEntry is not defined
         # instruction_lines = instructions.split('\n')
         # for line in instruction_lines:
         #     process_instruction(line)
-        self.saveInstructions(self, instructions)
+        self.saveInstructions(instructions)
 
         print("Entered instructions: ", instructions)
-        
+
+
 
     def saveInstructions(self, instructions):
         file_name = "instructions.txt"
@@ -437,7 +440,7 @@ class StartWindow:
         algorithm.readInstructionsFromFile(file_name)
 
     def executeWritten(self):
-        code_entry = Entry(self.submitInstructions)
+        code_entry = Entry(self.submitInstructions())
         code_entry.pack()
 
         code  = code_entry.get()
@@ -462,9 +465,9 @@ class StartWindow:
         #root = Tk()
         instructionLabel = Label(self.root, text = "Enter Instructions: ")      #
         instructionLabel.pack()     #
-        
-        instructionEntry = Entry(self.root)     #
-        instructionEntry.pack()     #
+
+        self.instructionEntry = Entry(self.root)     #
+        self.instructionEntry.pack()     #
 
         self.root.mainloop()
 
